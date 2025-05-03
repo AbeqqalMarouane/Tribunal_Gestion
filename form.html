@@ -1,0 +1,140 @@
+<?php
+session_start();
+error_reporting(0);
+include('includes/dbconnection.php');
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get the form data
+    $nbr_Financier = $_POST['nbr_Financier'];
+    $service = $_POST['service'];
+    $stop_date = $_POST['stop_date'];
+    $license_duration = $_POST['license_duration'];
+    $note = isset($_POST['note']) ? $_POST['note'] : null;
+    $license_type = $_POST['license_type'];
+
+    // Calculate the Date_Debut and Date_Retour based on stop_date and license_duration
+    $date_debut = date('Y-m-d', strtotime($stop_date));
+    $date_retour = date('Y-m-d', strtotime($stop_date. ' + '. $license_duration . ' days'));
+
+    // Prepare and execute the insert statement
+    try {
+        $sql = "INSERT INTO contrat (Nbr_Financier, Type_Conge, Duree_Conge, Date_Conge, Date_Debut, Date_Retour, note) 
+                VALUES (:nbr_Financier, :license_type, :license_duration, :stop_date, :date_debut, :date_retour, :note)";
+        $stmt = $dbh->prepare($sql);
+        $stmt->bindParam(':nbr_Financier', $nbr_Financier);
+        $stmt->bindParam(':license_type', $license_type);
+        $stmt->bindParam(':license_duration', $license_duration);
+        $stmt->bindParam(':stop_date', $stop_date);
+        $stmt->bindParam(':date_debut', $date_debut);
+        $stmt->bindParam(':date_retour', $date_retour);
+        $stmt->bindParam(':note', $note);
+
+        if ($stmt->execute()) {
+            echo "New record created successfully";
+        } else {
+            echo "Error: Could not execute the query";
+        }
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>استمارة التسجيل</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="website icon" type="png" href="images/M6.png">
+
+</head>
+<body>
+    <form action="submit_form.php" method="post" id="registration-form">
+      <div class="demo-page">
+          <main class="demo-page-content">
+              <section>
+                  <div class="href-target" id="input-types"></div>
+                  <h1>
+                      استمارة التسجيل
+                      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 48 48">
+                          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+                              <path d="M24 24v-5L39 4l5 5l-15 15z" clip-rule="evenodd"/>
+                              <path d="M16 24H9a5 5 0 0 0 0 10h30a5 5 0 0 1 0 10H18"/>
+                          </g>
+                      </svg>
+                  </h1>
+                  <div class="nice-form-group">
+                      <label>الرقم لمالي</label>
+                      <input type="search" placeholder="" value="" name="nbr_Financier" required />
+                  </div>
+      
+                  <div class="nice-form-group">
+                      <label>الاسم الكامل</label>
+                      <input type="text" name="full_name" disabled placeholder="الاسم الكامل" value="" />
+                  </div>
+                  <fieldset class="nice-form-group">
+                      <div class="nice-form-group">
+                          <label for="r-1"><span style="padding-right: 6px;">مصلحة المنتدبين القضائيين والأطر التقنية</span><input type="radio" name="service" value="مصلحة المنتدبين القضائيين والأطر التقنية" id="r-1" required /></label>
+                      </div>
+      
+                      <div class="nice-form-group">
+                          <label for="r-2">
+                              <span style="padding-right: 6px;">مصلحة كتاب الضبط والمحررين القضائيين</span><input type="radio" name="service" value="مصلحة كتاب الضبط والمحررين القضائيين" id="r-2" required />
+                          </label>
+                      </div>
+                  </fieldset>
+                  <div class="nice-form-group">
+                      <label>تاريخ الإيقاف</label>
+                      <input type="date" name="start-date" value="2018-07-22" required />
+                  </div>
+                  <div class="nice-form-group">
+                      <label>مدة الرخصة</label>
+                      <input type="number" name="license_duration" placeholder="1234" required />
+                  </div>
+                  <div class="nice-form-group">
+                      <label>ملاحضة</label>
+                      <textarea rows="5" name="note" placeholder="اختياري"></textarea>
+                  </div>
+      
+                  <div class="nice-form-group">
+                      <label>نوع الرخصة</label>
+                      <select name="license_type" required>
+                          <option value="سنوية">رخصة سنوية </option>
+                          <option value="لوفاة">رخصة لوفاة</option>
+                          <option value="استثنائية">رخصة استثنائية</option>
+                          <option value="شخصية">رخصة لأغراض شخصية </option>
+                          <option value="الحج">رخصة الحج</option>
+                          <option value="الزفاف">رخصة الزفاف</option>
+                          <option value="الولادة">رخصة الولادة </option>
+                          <option value="العقيقة">العقيقة</option>
+                          <option value="الأبوة">رخصة الأبوة</option>
+                          <option value="تغيب">رخصة تغيب</option>
+                      </select>
+                  </div>
+                  <details>
+                      <summary>
+                          <div class="toggle-code">
+                              <input type="reset" value="الغاء" class="styled-button" id="btn-reset">
+                              <input type="submit" value="حفظ" class="styled-button">
+                          </div>
+                      </summary>
+                  </details>
+              </section>
+          </main>
+      </div>
+    </form>
+
+  
+  <script>
+    function submitForm() {
+      document.getElementById("registration-form").submit();
+    }
+  </script>
+  
+
+</body>
+</html>
+
+
